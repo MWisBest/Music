@@ -1,0 +1,3 @@
+-keep class me.mwisbest.music.AudioPreview {
+  public void playPauseClicked(android.view.View);
+}

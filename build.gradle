@@ -1,0 +1,57 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath "com.android.tools.build:gradle:1.2.2"
+	}
+}
+
+allprojects {
+	repositories {
+		jcenter()
+	}
+	gradle.projectsEvaluated {
+		tasks.withType(JavaCompile) {
+			options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+		}
+	}
+}
+
+apply plugin: "com.android.application"
+
+android {
+	compileSdkVersion 22
+	buildToolsVersion "22.0.1"
+
+	defaultConfig {
+		applicationId "me.mwisbest.music"
+		minSdkVersion 22
+		targetSdkVersion 22
+	}
+
+	sourceSets {
+		main {
+			manifest.srcFile "AndroidManifest.xml"
+			java.srcDirs = ["src"]
+			aidl.srcDirs = ["src"]
+			res.srcDirs = ["res"]
+		}
+	}
+
+	buildTypes {
+		release {
+			minifyEnabled false
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+		}
+	}
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_7
+		targetCompatibility JavaVersion.VERSION_1_7
+	}
+}
+
+dependencies {
+	compile "com.android.support:support-annotations:22.0.0"
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<style name="MusicTheme" parent="android:Theme.Material">
+
+	</style>
+
+	<style name="MusicNoActionBar" parent="android:Theme.Material.NoActionBar">
+
+	</style>
+</resources>
