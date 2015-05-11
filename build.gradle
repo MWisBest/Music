@@ -52,6 +52,6 @@ android {
 	}
 }
 
-dependencies {
-	compile "com.android.support:support-annotations:22.0.0"
-}
+//dependencies {
+	//compile "com.android.support:support-annotations:22.0.0"
+//}
