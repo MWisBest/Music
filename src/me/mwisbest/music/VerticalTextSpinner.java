@@ -297,7 +297,7 @@ public class VerticalTextSpinner extends View {
 			final TextPaint textPaintLight = mTextPaintLight;
 
             /*
-             * Draw the 1st, 2nd and 3rd item in light only, clip it so it only
+			 * Draw the 1st, 2nd and 3rd item in light only, clip it so it only
              * draws in the area above the selector
              */
 			canvas.save();

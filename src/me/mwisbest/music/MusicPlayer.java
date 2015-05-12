@@ -25,6 +25,7 @@ public class MusicPlayer extends MediaPlayer {
 	/**
 	 * Sorry, but we're the only onPrepared listener...
 	 * ...or are we? :D
+	 *
 	 * @param listener 'post-listener'
 	 */
 	@Override
@@ -64,16 +65,20 @@ public class MusicPlayer extends MediaPlayer {
 	}
 
 	@Override
-	public void setOnVideoSizeChangedListener( OnVideoSizeChangedListener listener ) {}
+	public void setOnVideoSizeChangedListener( OnVideoSizeChangedListener listener ) {
+	}
 
 	@Override
-	public void setDisplay( SurfaceHolder sh ) {}
+	public void setDisplay( SurfaceHolder sh ) {
+	}
 
 	@Override
-	public void setSurface( Surface surface ) {}
+	public void setSurface( Surface surface ) {
+	}
 
 	@Override
-	public void setScreenOnWhilePlaying( boolean screenOn ) {}
+	public void setScreenOnWhilePlaying( boolean screenOn ) {
+	}
 
 
 	/* Remove other stuff we don't use, etc */

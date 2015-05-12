@@ -327,8 +327,8 @@ public class TrackBrowserActivity extends ListActivity
 
 			//if( Intent.ACTION_MEDIA_SCANNER_STARTED.equals( action ) ||
 			//		Intent.ACTION_MEDIA_SCANNER_FINISHED.equals( action ) ) {
-				// TODO: Deprecated...kinda...
-				//MusicUtils.setSpinnerState( TrackBrowserActivity.this );
+			// TODO: Deprecated...kinda...
+			//MusicUtils.setSpinnerState( TrackBrowserActivity.this );
 			//}
 			mReScanHandler.sendEmptyMessage( 0 );
 		}

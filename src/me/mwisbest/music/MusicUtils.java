@@ -33,7 +33,6 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
@@ -54,7 +53,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
-import android.view.Window;
 import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -64,8 +62,6 @@ import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashMap;
@@ -773,7 +769,7 @@ public class MusicUtils {
 				secs < 3600 ? R.string.durationformatshort : R.string.durationformatlong );
 
         /* Provide multiple arguments so the format can be changed easily
-         * by modifying the xml.
+		 * by modifying the xml.
          */
 		sFormatBuilder.setLength( 0 );
 
@@ -1117,7 +1113,7 @@ public class MusicUtils {
 
 	/**
 	 * Get the average RGB of a {@link Bitmap}
-	 *
+	 * <p/>
 	 * Will overflow if some jackass finds an image with the following parameters:
 	 * 1. > 36170086419038336 pixels
 	 * 2. All of those pixels have a full (255) R, G, or B value.
