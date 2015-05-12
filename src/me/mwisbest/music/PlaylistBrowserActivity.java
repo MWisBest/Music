@@ -16,13 +16,16 @@
 
 package me.mwisbest.music;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -38,6 +41,8 @@ import android.os.IBinder;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -47,6 +52,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
@@ -353,10 +359,71 @@ public class PlaylistBrowserActivity extends ListActivity
 				}
 				break;
 			case RENAME_PLAYLIST:
-				Intent intent = new Intent();
-				intent.setClass( this, RenamePlaylist.class );
-				intent.putExtra( "rename", mi.id );
-				startActivityForResult( intent, RENAME_PLAYLIST );
+				final EditText input = new EditText( this );
+				final long renameId = mi.id;
+				final String originalname = MusicUtils.nameForId( this, renameId );
+				final String prompt = getString( R.string.rename_playlist_same_prompt, originalname, originalname );
+				input.setText( originalname );
+				input.setSelection( originalname.length() );
+
+				AlertDialog.Builder dialogBuilder = new AlertDialog.Builder( PlaylistBrowserActivity.this )
+						.setTitle( prompt )
+						.setNegativeButton( android.R.string.cancel, null )
+						.setPositiveButton( R.string.create_playlist_create_text, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick( DialogInterface dialog, int which ) {
+								String name = input.getText().toString();
+								// Shouldn't be able to click us if it's not > 0, but better safe than sorry.
+								if( name.length() > 0 ) {
+									ContentResolver resolver = getContentResolver();
+									ContentValues values = new ContentValues( 1 );
+									values.put( MediaStore.Audio.Playlists.NAME, name );
+									resolver.update( MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+											values,
+											MediaStore.Audio.Playlists._ID + "=?",
+											new String[] { Long.valueOf( renameId ).toString() } );
+									Toast.makeText( PlaylistBrowserActivity.this,
+											R.string.playlist_renamed_message, Toast.LENGTH_SHORT ).show();
+								}
+							}
+						} );
+				final AlertDialog dialog = dialogBuilder.create();
+				int horizontalPadding = MusicUtils.getPixelsForDP( 14 );
+				dialog.setView( input, horizontalPadding, 0, horizontalPadding, 0 );
+
+				input.addTextChangedListener( new TextWatcher() {
+					@Override
+					public void beforeTextChanged( CharSequence s, int start, int count, int after ) {
+						// don't care about this one
+					}
+
+					@Override
+					public void onTextChanged( CharSequence s, int start, int before, int count ) {
+						String newText = input.getText().toString();
+						if( newText.trim().length() == 0 || originalname.equals( newText ) ) {
+							dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( false );
+						} else {
+							dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( true );
+							// check if playlist with current name exists already, and warn the user if so.
+							if( MusicUtils.idForPlaylist( PlaylistBrowserActivity.this, newText ) >= 0 ) {
+								dialog.getButton( DialogInterface.BUTTON_POSITIVE )
+										.setText( R.string.create_playlist_overwrite_text );
+							} else {
+								dialog.getButton( DialogInterface.BUTTON_POSITIVE )
+										.setText( R.string.create_playlist_create_text );
+							}
+						}
+					}
+
+					@Override
+					public void afterTextChanged( Editable s ) {
+						// don't care about this one
+					}
+				} );
+
+				dialog.show();
+				// We default to the original name...
+				dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( false );
 				break;
 		}
 		return true;

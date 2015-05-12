@@ -1442,6 +1442,23 @@ public class MusicUtils {
 		return id;
 	}
 
+	public static String nameForId( Context context, long id ) {
+		Cursor c = MusicUtils.query( context, MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+				new String[] { MediaStore.Audio.Playlists.NAME },
+				MediaStore.Audio.Playlists._ID + "=?",
+				new String[] { Long.valueOf( id ).toString() },
+				MediaStore.Audio.Playlists.NAME );
+		String name = "";
+		if( c != null ) {
+			c.moveToFirst();
+			if( !c.isAfterLast() ) {
+				name = c.getString( 0 );
+			}
+			c.close();
+		}
+		return name;
+	}
+
 	public static int getPixelsForDP( int dp ) {
 		return (int)( Math.ceil( dp * Resources.getSystem().getDisplayMetrics().density ) );
 	}

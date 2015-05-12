@@ -276,10 +276,6 @@
 			</intent-filter>
 		</activity>
 		<activity
-				android:name="me.mwisbest.music.RenamePlaylist"
-				android:theme="@android:style/Theme.Dialog"
-				android:exported="false"/>
-		<activity
 				android:name="me.mwisbest.music.WeekSelector"
 				android:theme="@android:style/Theme.Dialog"
 				android:exported="false"/>
