@@ -36,8 +36,7 @@
 			android:layout_gravity="center"
 			android:textSize="14sp"
 			android:textColor="#ffffffff"/>
-	<!--android:progressDrawable="@drawable/progress_horizontal"-->
-	<!-- android:thumb="@drawable/seek_thumb" -->
+
 	<SeekBar
 			android:id="@+id/progress"
 			style="@android:style/Widget.Material.ProgressBar.Horizontal"
