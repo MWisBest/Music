@@ -689,7 +689,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 										MusicUtils.deleteTracks( MediaPlaybackActivity.this, finallist );
 									}
 								} )
-								.create()
 								.show();
 					}
 					return true;

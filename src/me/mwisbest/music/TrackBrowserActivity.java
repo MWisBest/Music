@@ -803,7 +803,6 @@ public class TrackBrowserActivity extends ListActivity
 								MusicUtils.deleteTracks( TrackBrowserActivity.this, finallist );
 							}
 						} )
-						.create()
 						.show();
 				return true;
 			}

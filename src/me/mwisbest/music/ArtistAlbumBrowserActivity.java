@@ -518,7 +518,6 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
 								MusicUtils.deleteTracks( ArtistAlbumBrowserActivity.this, finallist );
 							}
 						} )
-						.create()
 						.show();
 
 				return true;
