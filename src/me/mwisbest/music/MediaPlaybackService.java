@@ -1201,7 +1201,7 @@ public class MediaPlaybackService extends Service {
 				.setContentIntent( PendingIntent.getActivity( this, 0,
 						new Intent( "me.mwisbest.music.PLAYBACK_VIEWER" )
 								.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK ), 0 ) )
-				.setSmallIcon( R.drawable.stat_notify_musicplayer )
+				.setSmallIcon( R.drawable.ic_stat_notify_music )
 				.setShowWhen( false );
 
 		if( getAudioId() < 0 ) {
