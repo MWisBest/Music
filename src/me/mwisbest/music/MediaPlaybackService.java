@@ -1241,7 +1241,7 @@ public class MediaPlaybackService extends Service {
 		intent = new Intent( MediaPlaybackService.TOGGLEPAUSE_ACTION );
 		intent.setComponent( serviceName );
 		pi = PendingIntent.getService( this, 0 /* no requestCode */, intent, 0 /* no flags */ );
-		builder = builder.addAction( R.drawable.ic_appwidget_music_pause, null, pi );
+		builder = builder.addAction( R.drawable.ic_action_pause, null, pi );
 
 		intent = new Intent( MediaPlaybackService.NEXT_ACTION );
 		intent.setComponent( serviceName );
