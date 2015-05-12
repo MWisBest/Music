@@ -318,7 +318,6 @@ public class AlbumBrowserActivity extends ListActivity
 
 				AlertDialog.Builder dialogBuilder = new AlertDialog.Builder( AlbumBrowserActivity.this )
 						.setTitle( R.string.create_playlist_create_text_prompt )
-						.setView( input )
 						.setNegativeButton( android.R.string.cancel, null )
 						.setPositiveButton( R.string.create_playlist_create_text, new DialogInterface.OnClickListener() {
 							@Override
@@ -348,6 +347,8 @@ public class AlbumBrowserActivity extends ListActivity
 							}
 						} );
 				final AlertDialog dialog = dialogBuilder.create();
+				int horizontalPadding = MusicUtils.getPixelsForDP( 14 );
+				dialog.setView( input, horizontalPadding, 0, horizontalPadding, 0 );
 
 				input.addTextChangedListener( new TextWatcher() {
 					@Override

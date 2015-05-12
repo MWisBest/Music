@@ -47,6 +47,7 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -409,12 +410,12 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
 			case NEW_PLAYLIST: {
 				final EditText input = new EditText( this );
 				String defaultname = MusicUtils.makePlaylistName( this );
+
 				input.setText( defaultname );
 				input.setSelection( defaultname.length() );
 
 				AlertDialog.Builder dialogBuilder = new AlertDialog.Builder( ArtistAlbumBrowserActivity.this )
 						.setTitle( R.string.create_playlist_create_text_prompt )
-						.setView( input )
 						.setNegativeButton( android.R.string.cancel, null )
 						.setPositiveButton( R.string.create_playlist_create_text, new DialogInterface.OnClickListener() {
 							@Override
@@ -452,6 +453,8 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
 							}
 						} );
 				final AlertDialog dialog = dialogBuilder.create();
+				int horizontalPadding = MusicUtils.getPixelsForDP( 14 );
+				dialog.setView( input, horizontalPadding, 0, horizontalPadding, 0 );
 
 				input.addTextChangedListener( new TextWatcher() {
 					@Override

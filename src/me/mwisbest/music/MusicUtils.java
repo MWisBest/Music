@@ -1441,4 +1441,8 @@ public class MusicUtils {
 		}
 		return id;
 	}
+
+	public static int getPixelsForDP( int dp ) {
+		return (int)( Math.ceil( dp * Resources.getSystem().getDisplayMetrics().density ) );
+	}
 }
