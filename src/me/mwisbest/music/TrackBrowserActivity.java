@@ -44,7 +44,9 @@ import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Audio.Playlists;
 import android.support.annotation.NonNull;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -57,6 +59,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AlphabetIndexer;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SectionIndexer;
@@ -701,9 +704,74 @@ public class TrackBrowserActivity extends ListActivity
 			}
 
 			case NEW_PLAYLIST: {
-				Intent intent = new Intent();
-				intent.setClass( this, CreatePlaylist.class );
-				startActivityForResult( intent, NEW_PLAYLIST );
+				final EditText input = new EditText( this );
+				String defaultname = MusicUtils.makePlaylistName( this );
+				input.setText( defaultname );
+				input.setSelection( defaultname.length() );
+
+				AlertDialog.Builder dialogBuilder = new AlertDialog.Builder( TrackBrowserActivity.this )
+						.setTitle( R.string.create_playlist_create_text_prompt )
+						.setView( input )
+						.setNegativeButton( android.R.string.cancel, null )
+						.setPositiveButton( R.string.create_playlist_create_text, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick( DialogInterface dialog, int which ) {
+								String name = input.getText().toString();
+								// Shouldn't be able to click us if it's not > 0, but better safe than sorry.
+								if( name.length() > 0 ) {
+									ContentResolver resolver = getContentResolver();
+									int id = MusicUtils.idForPlaylist( TrackBrowserActivity.this, name );
+									Uri uri;
+									if( id >= 0 ) {
+										// overwrite existing playlist
+										uri = ContentUris.withAppendedId( MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, id );
+										MusicUtils.clearPlaylist( TrackBrowserActivity.this, id );
+									} else {
+										ContentValues values = new ContentValues( 1 );
+										values.put( MediaStore.Audio.Playlists.NAME, name );
+										uri = resolver.insert( MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, values );
+									}
+									if( uri != null ) {
+										long[] list = new long[] { mSelectedId };
+										MusicUtils.addToPlaylist( TrackBrowserActivity.this,
+												list, Integer.valueOf( uri.getLastPathSegment() ) );
+									}
+								}
+							}
+						} );
+				final AlertDialog dialog = dialogBuilder.create();
+
+				input.addTextChangedListener( new TextWatcher() {
+					@Override
+					public void beforeTextChanged( CharSequence s, int start, int count, int after ) {
+						// don't care about this one
+					}
+
+					@Override
+					public void onTextChanged( CharSequence s, int start, int before, int count ) {
+						String newText = input.getText().toString();
+						if( newText.trim().length() == 0 ) {
+							dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( false );
+						} else {
+							dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( true );
+							// check if playlist with current name exists already, and warn the user if so.
+							if( MusicUtils.idForPlaylist( TrackBrowserActivity.this, newText ) >= 0 ) {
+								dialog.getButton( DialogInterface.BUTTON_POSITIVE )
+										.setText( R.string.create_playlist_overwrite_text );
+							} else {
+								dialog.getButton( DialogInterface.BUTTON_POSITIVE )
+										.setText( R.string.create_playlist_create_text );
+							}
+						}
+					}
+
+					@Override
+					public void afterTextChanged( Editable s ) {
+						// don't care about this one
+					}
+				} );
+
+				dialog.show();
 				return true;
 			}
 
@@ -964,9 +1032,74 @@ public class TrackBrowserActivity extends ListActivity
 				return true;
 
 			case SAVE_AS_PLAYLIST:
-				intent = new Intent();
-				intent.setClass( this, CreatePlaylist.class );
-				startActivityForResult( intent, SAVE_AS_PLAYLIST );
+				final EditText input = new EditText( this );
+				String defaultname = MusicUtils.makePlaylistName( this );
+				input.setText( defaultname );
+				input.setSelection( defaultname.length() );
+
+				AlertDialog.Builder dialogBuilder = new AlertDialog.Builder( TrackBrowserActivity.this )
+						.setTitle( R.string.create_playlist_create_text_prompt )
+						.setView( input )
+						.setNegativeButton( android.R.string.cancel, null )
+						.setPositiveButton( R.string.create_playlist_create_text, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick( DialogInterface dialog, int which ) {
+								String name = input.getText().toString();
+								// Shouldn't be able to click us if it's not > 0, but better safe than sorry.
+								if( name.length() > 0 ) {
+									ContentResolver resolver = getContentResolver();
+									int id = MusicUtils.idForPlaylist( TrackBrowserActivity.this, name );
+									Uri uri;
+									if( id >= 0 ) {
+										// overwrite existing playlist
+										uri = ContentUris.withAppendedId( MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, id );
+										MusicUtils.clearPlaylist( TrackBrowserActivity.this, id );
+									} else {
+										ContentValues values = new ContentValues( 1 );
+										values.put( MediaStore.Audio.Playlists.NAME, name );
+										uri = resolver.insert( MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, values );
+									}
+									if( uri != null ) {
+										long[] list = MusicUtils.getSongListForCursor( mTrackCursor );
+										int plid = Integer.parseInt( uri.getLastPathSegment() );
+										MusicUtils.addToPlaylist( TrackBrowserActivity.this, list, plid );
+									}
+								}
+							}
+						} );
+				final AlertDialog dialog = dialogBuilder.create();
+
+				input.addTextChangedListener( new TextWatcher() {
+					@Override
+					public void beforeTextChanged( CharSequence s, int start, int count, int after ) {
+						// don't care about this one
+					}
+
+					@Override
+					public void onTextChanged( CharSequence s, int start, int before, int count ) {
+						String newText = input.getText().toString();
+						if( newText.trim().length() == 0 ) {
+							dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( false );
+						} else {
+							dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( true );
+							// check if playlist with current name exists already, and warn the user if so.
+							if( MusicUtils.idForPlaylist( TrackBrowserActivity.this, newText ) >= 0 ) {
+								dialog.getButton( DialogInterface.BUTTON_POSITIVE )
+										.setText( R.string.create_playlist_overwrite_text );
+							} else {
+								dialog.getButton( DialogInterface.BUTTON_POSITIVE )
+										.setText( R.string.create_playlist_create_text );
+							}
+						}
+					}
+
+					@Override
+					public void afterTextChanged( Editable s ) {
+						// don't care about this one
+					}
+				} );
+
+				dialog.show();
 				return true;
 
 			case CLEAR_PLAYLIST:
@@ -985,27 +1118,6 @@ public class TrackBrowserActivity extends ListActivity
 					finish();
 				} else {
 					getTrackCursor( mAdapter.getQueryHandler(), null, true );
-				}
-				break;
-
-			case NEW_PLAYLIST:
-				if( resultCode == RESULT_OK ) {
-					Uri uri = intent.getData();
-					if( uri != null ) {
-						long[] list = new long[] { mSelectedId };
-						MusicUtils.addToPlaylist( this, list, Integer.valueOf( uri.getLastPathSegment() ) );
-					}
-				}
-				break;
-
-			case SAVE_AS_PLAYLIST:
-				if( resultCode == RESULT_OK ) {
-					Uri uri = intent.getData();
-					if( uri != null ) {
-						long[] list = MusicUtils.getSongListForCursor( mTrackCursor );
-						int plid = Integer.parseInt( uri.getLastPathSegment() );
-						MusicUtils.addToPlaylist( this, list, plid );
-					}
 				}
 				break;
 		}

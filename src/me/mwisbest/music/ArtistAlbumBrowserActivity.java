@@ -23,6 +23,8 @@ import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -41,7 +43,9 @@ import android.os.IBinder;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -51,6 +55,7 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.ExpandableListContextMenuInfo;
 import android.widget.ImageView;
@@ -402,9 +407,83 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
 			}
 
 			case NEW_PLAYLIST: {
-				Intent intent = new Intent();
-				intent.setClass( this, CreatePlaylist.class );
-				startActivityForResult( intent, NEW_PLAYLIST );
+				final EditText input = new EditText( this );
+				String defaultname = MusicUtils.makePlaylistName( this );
+				input.setText( defaultname );
+				input.setSelection( defaultname.length() );
+
+				AlertDialog.Builder dialogBuilder = new AlertDialog.Builder( ArtistAlbumBrowserActivity.this )
+						.setTitle( R.string.create_playlist_create_text_prompt )
+						.setView( input )
+						.setNegativeButton( android.R.string.cancel, null )
+						.setPositiveButton( R.string.create_playlist_create_text, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick( DialogInterface dialog, int which ) {
+								String name = input.getText().toString();
+								// Shouldn't be able to click us if it's not > 0, but better safe than sorry.
+								if( name.length() > 0 ) {
+									ContentResolver resolver = getContentResolver();
+									int id = MusicUtils.idForPlaylist( ArtistAlbumBrowserActivity.this, name );
+									Uri uri;
+									if( id >= 0 ) {
+										// overwrite existing playlist
+										uri = ContentUris.withAppendedId( MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, id );
+										MusicUtils.clearPlaylist( ArtistAlbumBrowserActivity.this, id );
+									} else {
+										ContentValues values = new ContentValues( 1 );
+										values.put( MediaStore.Audio.Playlists.NAME, name );
+										uri = resolver.insert( MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, values );
+									}
+									if( uri != null ) {
+										long[] list = null;
+										if( mCurrentArtistId != null ) {
+											list = MusicUtils.getSongListForArtist(
+													ArtistAlbumBrowserActivity.this,
+													Long.parseLong( mCurrentArtistId ) );
+										} else if( mCurrentAlbumId != null ) {
+											list = MusicUtils.getSongListForAlbum(
+													ArtistAlbumBrowserActivity.this,
+													Long.parseLong( mCurrentAlbumId ) );
+										}
+										MusicUtils.addToPlaylist( ArtistAlbumBrowserActivity.this,
+												list, Long.parseLong( uri.getLastPathSegment() ) );
+									}
+								}
+							}
+						} );
+				final AlertDialog dialog = dialogBuilder.create();
+
+				input.addTextChangedListener( new TextWatcher() {
+					@Override
+					public void beforeTextChanged( CharSequence s, int start, int count, int after ) {
+						// don't care about this one
+					}
+
+					@Override
+					public void onTextChanged( CharSequence s, int start, int before, int count ) {
+						String newText = input.getText().toString();
+						if( newText.trim().length() == 0 ) {
+							dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( false );
+						} else {
+							dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( true );
+							// check if playlist with current name exists already, and warn the user if so.
+							if( MusicUtils.idForPlaylist( ArtistAlbumBrowserActivity.this, newText ) >= 0 ) {
+								dialog.getButton( DialogInterface.BUTTON_POSITIVE )
+										.setText( R.string.create_playlist_overwrite_text );
+							} else {
+								dialog.getButton( DialogInterface.BUTTON_POSITIVE )
+										.setText( R.string.create_playlist_create_text );
+							}
+						}
+					}
+
+					@Override
+					public void afterTextChanged( Editable s ) {
+						// don't care about this one
+					}
+				} );
+
+				dialog.show();
 				return true;
 			}
 
@@ -492,21 +571,6 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
 					finish();
 				} else {
 					getArtistCursor( mAdapter.getQueryHandler(), null );
-				}
-				break;
-
-			case NEW_PLAYLIST:
-				if( resultCode == RESULT_OK ) {
-					Uri uri = intent.getData();
-					if( uri != null ) {
-						long[] list = null;
-						if( mCurrentArtistId != null ) {
-							list = MusicUtils.getSongListForArtist( this, Long.parseLong( mCurrentArtistId ) );
-						} else if( mCurrentAlbumId != null ) {
-							list = MusicUtils.getSongListForAlbum( this, Long.parseLong( mCurrentAlbumId ) );
-						}
-						MusicUtils.addToPlaylist( this, list, Long.parseLong( uri.getLastPathSegment() ) );
-					}
 				}
 				break;
 		}

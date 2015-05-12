@@ -22,7 +22,9 @@ import android.app.KeyguardManager;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -43,8 +45,10 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.text.Editable;
 import android.text.Layout;
 import android.text.TextUtils.TruncateAt;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -54,6 +58,7 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.Window;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -588,9 +593,75 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 					break;
 
 				case NEW_PLAYLIST: {
-					intent = new Intent();
-					intent.setClass( this, CreatePlaylist.class );
-					startActivityForResult( intent, NEW_PLAYLIST );
+					final EditText input = new EditText( this );
+					String defaultname = MusicUtils.makePlaylistName( this );
+					input.setText( defaultname );
+					input.setSelection( defaultname.length() );
+
+					AlertDialog.Builder dialogBuilder = new AlertDialog.Builder( MediaPlaybackActivity.this )
+							.setTitle( R.string.create_playlist_create_text_prompt )
+							.setView( input )
+							.setNegativeButton( android.R.string.cancel, null )
+							.setPositiveButton( R.string.create_playlist_create_text, new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick( DialogInterface dialog, int which ) {
+									String name = input.getText().toString();
+									// Shouldn't be able to click us if it's not > 0, but better safe than sorry.
+									if( name.length() > 0 ) {
+										ContentResolver resolver = getContentResolver();
+										int id = MusicUtils.idForPlaylist( MediaPlaybackActivity.this, name );
+										Uri uri;
+										if( id >= 0 ) {
+											// overwrite existing playlist
+											uri = ContentUris.withAppendedId( MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, id );
+											MusicUtils.clearPlaylist( MediaPlaybackActivity.this, id );
+										} else {
+											ContentValues values = new ContentValues( 1 );
+											values.put( MediaStore.Audio.Playlists.NAME, name );
+											uri = resolver.insert( MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, values );
+										}
+										if( uri != null ) {
+											long[] list = new long[1];
+											list[0] = MusicUtils.getCurrentAudioId();
+											int playlist = Integer.parseInt( uri.getLastPathSegment() );
+											MusicUtils.addToPlaylist( MediaPlaybackActivity.this, list, playlist );
+										}
+									}
+								}
+							} );
+					final AlertDialog dialog = dialogBuilder.create();
+
+					input.addTextChangedListener( new TextWatcher() {
+						@Override
+						public void beforeTextChanged( CharSequence s, int start, int count, int after ) {
+							// don't care about this one
+						}
+
+						@Override
+						public void onTextChanged( CharSequence s, int start, int before, int count ) {
+							String newText = input.getText().toString();
+							if( newText.trim().length() == 0 ) {
+								dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( false );
+							} else {
+								dialog.getButton( DialogInterface.BUTTON_POSITIVE ).setEnabled( true );
+								// check if playlist with current name exists already, and warn the user if so.
+								if( MusicUtils.idForPlaylist( MediaPlaybackActivity.this, newText ) >= 0 ) {
+									dialog.getButton( DialogInterface.BUTTON_POSITIVE )
+											.setText( R.string.create_playlist_overwrite_text );
+								} else {
+									dialog.getButton( DialogInterface.BUTTON_POSITIVE )
+											.setText( R.string.create_playlist_create_text );
+								}
+							}
+						}
+
+						@Override
+						public void afterTextChanged( Editable s ) {
+							// don't care about this one
+						}
+					} );
+
+					dialog.show();
 					return true;
 				}
 
@@ -640,17 +711,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 	protected void onActivityResult( int requestCode, int resultCode, Intent intent ) {
 		if( resultCode != RESULT_OK ) {
 			return;
-		}
-		switch( requestCode ) {
-			case NEW_PLAYLIST:
-				Uri uri = intent.getData();
-				if( uri != null ) {
-					long[] list = new long[1];
-					list[0] = MusicUtils.getCurrentAudioId();
-					int playlist = Integer.parseInt( uri.getLastPathSegment() );
-					MusicUtils.addToPlaylist( this, list, playlist );
-				}
-				break;
 		}
 	}
 
